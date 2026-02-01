@@ -1,3 +1,4 @@
+const { default: axios } = require("axios");
 const express = require("express");
 const Redis = require("ioredis");
 
@@ -35,15 +36,13 @@ app.post("/user/profile", async (req, res) => {
   res.json({ message: "User profile saved to Redis", data: userProfile });
 });
 
-app.get("/user/profile/:userId", async (req, res) => {
-  const { userId } = req.params;
-  const key = `user:profile:${userId}`;
+app.get("/test", async (req, res) => {
+  const key = "leaderboard:game:1";
 
-  const [fullname, age] = await redis.hmget(key, "fullname", "age");
+  const topUsers = await redis.zrevrange(key, 0, 2, "WITHSCORES");
 
   res.json({
-    message: "User profile retrieved from Redis",
-    data: { fullname, age },
+    topUsers,
   });
 });
 
