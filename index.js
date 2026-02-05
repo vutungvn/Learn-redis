@@ -21,53 +21,16 @@ redis.on("error", (err) => {
 const app = express();
 app.use(express.json());
 
-app.post("/user/profile", async (req, res) => {
-  const userProfile = {
-    userId: "001",
-    fullname: "John Doe",
-    age: 30,
-  };
+app.post("/pub", async (req, res) => {
+  // Data fix cứng
+  const channel = "news";
+  const message = "Hello Redis Pub/Sub";
 
-  const key = `user:profile:${userProfile.userId}`;
-
-  await redis.hmset(key, userProfile);
-  await redis.expire(key, 60);
-
-  res.json({ message: "User profile saved to Redis", data: userProfile });
-});
-
-app.get("/test", async (req, res) => {
-  const key = "leaderboard:game:1";
-
-  const topUsers = await redis.zrevrange(key, 0, 2, "WITHSCORES");
+  await redis.publish(channel, message);
 
   res.json({
-    topUsers,
-  });
-});
-
-app.put("/user/profile/:userId", async (req, res) => {
-  const { userId } = req.params;
-  const key = `user:profile:${userId}`;
-
-  // Kiểm tra xem user có tồn tại không
-  const exists = await redis.exists(key);
-  if (!exists) {
-    return res.status(404).json({ message: "User profile not found" });
-  }
-
-  // Lấy data từ request body (không bao gồm userId)
-  const { fullname, age } = req.body;
-
-  // Update hash fields
-  await redis.hmset(key, {
-    fullname,
-    age,
-  });
-
-  res.json({
-    message: "User profile updated successfully",
-    data: { userId, fullname, age },
+    channel,
+    message,
   });
 });
 
